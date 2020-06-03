@@ -65,7 +65,7 @@ Function Get-BoxFolderListV2 {
             [Parameter(Mandatory=$true, Position=1)]
             [string]$BoxFolderID)
     Write-Debug "Get-BoxFolderListV2 $BoxUserID $BoxFolderID"
-    $BoxFolderRequestURL = "https://api.box.com/2.0/folders/$BoxFolderID/items?fields=owned_by,name,size`"&`"limit=10000"
+    $BoxFolderRequestURL = "https://api.box.com/2.0/folders/$BoxFolderID/items?fields=owned_by,name,size`"&`"limit=1000"
     $BoxUserFoldersReturn = box request $BoxFolderRequestURL --as-user=$BoxUserID --json | ConvertFrom-Json
     $BoxUserFolders = $BoxUserFoldersReturn.body.entries
     Return $BoxUserFolders
@@ -109,7 +109,6 @@ Function Get-BoxUserFolders {
     Write-Debug "Get-BoxUserFolders $UserBearID $BoxUserID"
     $BoxFolders = Get-BoxUserRootFolders -BoxUserID $BoxUserID
     $BoxFoldersOutputList = @()
-    $BoxUserFoundInList = $False
     $UserEmail = $UserBearID + $EmailDomain
     $BoxUserFolderCollabLevel = ""
     $BoxFolderOutput = [PSCustomObject]@{
@@ -251,7 +250,6 @@ Function Get-BoxUserTrashList {
         Type = ""
         ID = ""
         Size = ""
-        FolderItems = ""
         ParentID = ""
         ParentName = ""
         TrashedDate = ""
@@ -284,6 +282,42 @@ Function Get-BoxUserTrashList {
         $TrashListOutput += $TrashItemOutput
     }
 
+    Return $TrashListOutput
+}
+
+#Return list of Box user trash items
+Function Get-BoxUserTrashListV2 {
+    Param (
+        [Parameter(Mandatory=$true,Position=0)]
+        [string]$UserBearID,
+        [Parameter(Mandatory=$true,Position=1)]
+        [string]$BoxUserID)
+    Write-Debug "Get-BoxUserTrashListV2 $UserBearID $BoxUserID"
+    $BoxTrashListRequestURL = "https://api.box.com/2.0/folders/trash/$BoxFolderID/items?fields=id,type,name,owned_by,size,trashed_at,parent`"&`"limit=1000"
+    $BoxUserTrashListReturn = box request $BoxTrashListRequestURL --as-user=$BoxUserID --json | ConvertFrom-Json
+    $BoxUserTrashList = $BoxUserTrashListReturn.body.entries
+    $TrashListOutput = @()
+    $TrashItemOutput = [PSCustomObject]@{
+        Name = ""
+        Owner = ""
+        Type = ""
+        ID = ""
+        Size = ""
+        ParentID = ""
+        ParentName = ""
+        TrashedDate = ""
+    }
+    foreach ($BoxUserTrashItem in $BoxUserTrashList) {
+        $TrashItemOutput.Name = $BoxUserTrashItem.name
+        $TrashItemOutput.Owner = $BoxUserTrashItem.owned_by.login
+        $TrashItemOutput.Type = $BoxUserTrashItem.type
+        $TrashItemOutput.ID = $BoxUserTrashItem.id
+        $TrashItemOutput.Size = $BoxUserTrashItem.size
+        $TrashItemOutput.ParentID = $BoxUserTrashItem.parent.id
+        $TrashItemOutput.ParentName = $BoxUserTrashItem.parent.name
+        $TrashItemOutput.TrashedDate = $BoxUserTrashItem.trashed_at
+        $TrashListOutput += $TrashItemOutput
+    }
     Return $TrashListOutput
 }
 
@@ -327,21 +361,68 @@ Function Delete-BoxUserTrashItem {
     Return $BoxTrashDeleteReturn
 }
 
+#Return the total size of a user's file storage
+Function Get-BoxUserAccountSize {
+    Param (
+        [Parameter(Mandatory=$true,Position=0)]
+        [string]$UserBearID,
+        [Parameter(Mandatory=$true,Position=1)]
+        [string]$BoxUserID)
+    Write-Debug "Get-BoxUserStorageSize $UserBearID $BoxUserID"
+
+}
+
+#Return the total size of a user's trash storage
+Function Get-BoxUserTrashSize {
+    Param (
+        [Parameter(Mandatory=$true,Position=0)]
+        [string]$UserBearID,
+        [Parameter(Mandatory=$true,Position=1)]
+        [string]$BoxUserID)
+    Write-Debug "Get-BoxUserTrashSize $UserBearID $BoxUserID"
+    $UserBoxTrashList = Get-BoxUserTrashListV2 -BoxUserID $BoxUserID -UserBearID $UserBearID
+
+    $UserTrashSize = 0
+    #Go through each trash item in the trash list and count the total size
+    foreach ($TrashItem in $UserBoxTrashList) {
+        Write-Debug $TrashItem.name #$TrashItem.size
+        $UserTrashSize += $TrashItem.size
+    }
+
+    Return $UserTrashSize
+}
+
+#Export 
+Function Export-BoxUserFolders {
+    Param (
+        [Parameter(Mandatory=$true,Position=0)]
+        [string]$UserBearID,
+        [Parameter(Mandatory=$true,Position=1)]
+        [string]$BoxUserID,
+        [Parameter(Mandatory=$true,Position=2)]
+        [string]$FolderPath)
+    Write-Debug "Export-BoxUserFolders $UserBearID $BoxUserID $FilePath"
+
+    $ReportRun = "Get-BoxUserFolders"
+    $FileTimestamp = (Get-Date).ToString("yyyyMMdd_HHmmss")
+    $OutputFile = "$FolderPath$UserBearID-$ReportRun-$FileTimeStamp.csv"
+    $BoxUserFolders = Get-BoxUserFolders -UserBearID $UserBearID -BoxUserID $BoxUserID
+    $BoxUserFolders | Export-Csv -Path $FolderPath
+    Return $BoxUserFolders
+}
+
 #Dev values
-#$DebugPreference = 'Continue'
+$DebugPreference = 'Continue'
+
 $EmailDomain = "@baylor.edu"
 #$UserBearID = "joshua_ogden"
-#$TestUserID = "211497569" #joshua_ogden ID
 #$UserBearID = "Allen_Page"
-#$TestUserID = "12646907509" #allen_page ID
-$UserBearID = "Chelsea_Lin1"
-$TestUserID = "3916309915" #chelsea_lin1 ID
+#$UserBearID = "Chelsea_Lin1"
 #$UserBearID = "Gina_Green"
-#$TestUserID = "227157899" #Gina_Green ID (58 items in trash list in admin console 5/28)
-#$UserBearID = "Brad_Hodges"
-#$TestUserID = "203020963" #Brad_Hodges ID
+$UserBearID = "Brad_Hodges"
 #$UserBearID = "Madeline_Todd"
-#$TestUserID = "235548264" #Madeline_Todd ID
+#$UserBearID = "Kevin_Pinney"
+#$UserBearID = "Dwayne_Simmons"
 $SharedOwnedFolderID = "51629651991" #Folder name: test
 $SharedFolderID = "8342900509" #Folder name: Application Services Group
 $NonsharedFolderID = "1802641245" #Folder name: Grad School
@@ -352,17 +433,43 @@ $OwnedTrashFileID = "267052929086" #File name: Hands presents.png User: Madeline
 $NonOwnedTrashFileID = "" #File name:  User: Madeline_Todd
 $OwnedTrashFolderID = "21697728072" #Folder name: Downloads  User: Madeline_Todd
 $NonOwnedTrashFolderID = "" #File name:  User: Brad_Hodges
+$OutputFolder = "C:\Users\brad_hodges\OneDrive - Baylor University\Documents\Box-Reports\"
+
+$TestUserID = Get-BoxUserID -UserBearID $UserBearID
 
 <#
+#Test Get-BoxUserTrashListV2
+$BoxUserTrashList = Get-BoxUserTrashListV2 -BoxUserID $TestUserID -UserBearID $UserBearID
+$BoxUserTrashList #| ForEach {[PSCustomObject]$_} | Format-Table -AutoSize
+$BoxUserTrashList.Length
+#>
+
+<#
+#Test Get-BoxUserTrashSize
+$BoxUserTrashSize = Get-BoxUserTrashSize -BoxUserID $TestUserID -UserBearID $UserBearID
+$BoxUserTrashSize
+#>
+
+<#
+#Test Delete-BoxUserTrashItem
 #$BoxDeleteTrashItemReturn = Delete-BoxUserTrashItem -BoxUserID $TestUserID -UserBearID $UserBearID -BoxTrashItemID $OwnedTrashFileID -BoxTrashItemType "file"
 $BoxDeleteTrashItemReturn = Delete-BoxUserTrashItem -BoxUserID $TestUserID -UserBearID $UserBearID -BoxTrashItemID $OwnedTrashFolderID -BoxTrashItemType "folder"
 $BoxDeleteTrashItemReturn
 
+<#
+#Test Get-BoxUserTrashList
 $BoxUserTrash = Get-BoxUserTrashList -BoxUserID $TestUserID -UserBearID $UserBearID
 $BoxUserTrash | ForEach {[PSCustomObject]$_} | Format-Table -AutoSize
 $BoxUserTrash.Length
 #>
 
-$BoxOwnedFolders = Get-BoxUserFolders -UserBearID $UserBearID -BoxUserID $TestUserID
-$BoxOwnedFolders | ForEach {[PSCustomObject]$_} | Format-Table -AutoSize
-$BoxOwnedFolders.Length
+
+#Test Get-BoxUserFolders
+
+Export-BoxUserFolders -UserBearID $UserBearID -BoxUserID $TestUserID -FilePath $OutputFolder
+
+#$BoxOwnedFolders = Get-BoxUserFolders -UserBearID $UserBearID -BoxUserID $TestUserID
+#$BoxOwnedFolders | ForEach {[PSCustomObject]$_} | Format-Table -AutoSize
+#$BoxOwnedFolders | Export-Csv -Path $OutputFile
+#$BoxOwnedFolders | ForEach {[PSCustomObject]$_.owner} | Format-Table -AutoSize
+#$BoxOwnedFolders.Length
