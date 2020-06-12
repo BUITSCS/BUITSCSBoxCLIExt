@@ -455,27 +455,19 @@ Function Deactivate-BoxUserList {
 
 #Dev values
 $DebugPreference = 'Continue'
-$EmailDomain = "@baylor.edu"
-#$BoxUserName = "joshua_ogden"
-#$BoxUserName = "Allen_Page"
-#$BoxUserName = "Chelsea_Lin1"
-#$BoxUserName = "Gina_Green"
-#$BoxUserName = "Brad_Hodges"
-#$BoxUserName = "Madeline_Todd"
-#$BoxUserName = "Kevin_Pinney"
-#$BoxUserName = "Dwayne_Simmons"
-$BoxUserName = "Eva_Doyle"
-$SharedOwnedFolderID = "51629651991" #Folder name: test
-$SharedFolderID = "8342900509" #Folder name: Application Services Group
-$NonsharedFolderID = "1802641245" #Folder name: Grad School
-$SharedOwnedFileID = "" #File name: 
-$SharedFileID = "646461273328" #File name: macOS 10.15.4 GPU freezing issue.csv
-$NonsharedFileID = "647259224879" #File name: macOS 10.15.4 GPU freezing issue.xlsx
-$OwnedTrashFileID = "267052929086" #File name: Hands presents.png User: Madeline_Todd
-$NonOwnedTrashFileID = "" #File name:  User: 
-$OwnedTrashFolderID = "21697728072" #Folder name: Downloads  User: Madeline_Todd
-$NonOwnedTrashFolderID = "" #File name:  User: 
-$OutputFolder = "C:\Users\brad_hodges\OneDrive - Baylor University\Documents\Box-Reports\"
+$EmailDomain = ""
+$BoxUserName = ""
+$SharedOwnedFolderID = ""
+$SharedFolderID = ""
+$NonsharedFolderID = ""
+$SharedOwnedFileID = ""
+$SharedFileID = ""
+$NonsharedFileID = ""
+$OwnedTrashFileID = ""
+$NonOwnedTrashFileID = ""
+$OwnedTrashFolderID = ""
+$NonOwnedTrashFolderID = ""
+$OutputFolder = ""
 
 $TestUserID = Get-BoxUserID -BoxUserName $BoxUserName
 
