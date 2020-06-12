@@ -455,8 +455,8 @@ Function Deactivate-BoxUserList {
 
 #Dev values
 $DebugPreference = 'Continue'
-$EmailDomain = ""
-$BoxUserName = ""
+$EmailDomain = "" # @domain.com
+$BoxUserName = "" # A user's Box domain name
 $SharedOwnedFolderID = ""
 $SharedFolderID = ""
 $NonsharedFolderID = ""
