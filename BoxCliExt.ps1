@@ -501,6 +501,7 @@ $BoxUserTrashSize
 #$BoxDeleteTrashItemReturn = Delete-BoxUserTrashItem -BoxUserID $TestUserID -BoxUserName $BoxUserName -BoxTrashItemID $OwnedTrashFileID -BoxTrashItemType "file"
 $BoxDeleteTrashItemReturn = Delete-BoxUserTrashItem -BoxUserID $TestUserID -BoxUserName $BoxUserName -BoxTrashItemID $OwnedTrashFolderID -BoxTrashItemType "folder"
 $BoxDeleteTrashItemReturn
+#>
 
 <#
 #Test Get-BoxUserTrashList
@@ -509,9 +510,10 @@ $BoxUserTrash | ForEach {[PSCustomObject]$_} | Format-Table -AutoSize
 $BoxUserTrash.Length
 #>
 
-
+<#
 #Test Export-BoxUserFolders
 Export-BoxUserFolders -BoxUserName $BoxUserName -BoxUserID $TestUserID -FilePath $OutputFolder
+#>
 
 <#
 #Test Get-BoxUserFolders
