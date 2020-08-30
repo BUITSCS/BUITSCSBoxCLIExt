@@ -453,13 +453,59 @@ Function Deactivate-BoxUserList {
     Return $BoxUserListDeactivateReturn
 }
 
+Function Create-BoxGroup {
+    Param (
+        [Parameter(Mandatory=$true,Position=0)]
+        [string]$BoxGroupName,
+        [Parameter(Mandatory=$false,Position=1)]
+        [ValidateSet("admins_only","admins_and_members","all_managed_users")]
+        [string]$BoxGroupInvite = "admins_only",
+        [Parameter(Mandatory=$false,Position=2)]
+        [ValidateSet("admins_only","admins_and_members","all_managed_users")]
+        [string]$BoxGroupMemberView = "admins_only")
+    
+    Write-Debug "Create-BoxGroup"
+    $GroupCreationReturn = box groups:create --invite=$BoxGroupInvite --view-members=$BoxGroupMemberView $BoxGroupName --json | ConvertFrom-Json
+    Return $GroupCreationReturn
+}
+
+Function Add-UserListToBoxGroup {
+    Param (
+        [Parameter(Mandatory=$true,Position=0)]
+        [object[]]$BoxUserList,
+        [Parameter(Mandatory=$true,Position=1)]
+        [string]$BoxGroupID,
+        [Parameter(Mandatory=$false,Position=2)]
+        [ValidateSet("member","admin")]
+        [string]$BoxGroupRole = "member")
+    
+    Write-Debug "Add-UserListToBoxGroup"
+    if ($BoxGroupRole -eq "admin") {
+        $BoxGroupAdminPermission = "--no-can-create-accounts --no-can-edit-accounts --no-can-instant-login --no-can-run-reports"
+    }
+    foreach ($BoxUserName in $BoxUserList) {
+        $BoxUserID = Get-BoxUserID -BoxUserName $BoxUserName
+        Write-Debug "Adding $BoxUserName $BoxUserID to group $BoxGroupID"
+        if ($BoxGroupRole -eq "admin") {
+            box groups:memberships:add --role=$BoxGroupRole --no-can-create-accounts --no-can-edit-accounts --no-can-instant-login --no-can-run-reports $BoxUserID $BoxGroupID --json | ConvertFrom-Json
+        }
+        else {
+            box groups:memberships:add --role=$BoxGroupRole $BoxUserID $BoxGroupID --json | ConvertFrom-Json
+        }
+    }
+}
+
 #Dev values
 $DebugPreference = 'Continue'
 $EmailDomain = "" # @domain.com
 $OutputFolder = ""
 
 #Test values
-$BoxUserName = "" # A user's Box domain name
+$BoxUserName = "" # A Box username
+$BoxUserName2 = ""
+$BoxUserName3 = ""
+$BoxUserName4 = ""
+$BoxGroupName = ""
 $SharedOwnedFolderID = ""
 $SharedFolderID = ""
 $NonsharedFolderID = ""
@@ -472,6 +518,25 @@ $OwnedTrashFolderID = ""
 $NonOwnedTrashFolderID = ""
 
 $TestUserID = Get-BoxUserID -BoxUserName $BoxUserName
+
+#Test Create-BoxGroup and Add-UserListToBoxGroup
+<#
+for ($i=1; $i -le 30; $i++){
+    if ($i -lt 10) {
+        $num = "0" + $i.ToString()
+    }
+    else {
+        $num = $i.ToString()
+    }
+    
+    $BoxGroupName = $BoxGroupTestName + $num
+    #>
+    $BoxUserList = @($BoxUserName, $BoxUserName2, $BoxUserName3, $BoxUserName4)
+
+    $BoxGroupCreateReturn = Create-BoxGroup -BoxGroupName $BoxGroupName
+    $BoxGroupCreateReturn
+    Add-UserListToBoxGroup -BoxUserList $BoxUserList -BoxGroupID $BoxGroupCreateReturn.id -BoxGroupRole admin
+#}
 
 <#
 #Test Deactivate-BoxUser and Activate-BoxUser
@@ -510,10 +575,10 @@ $BoxUserTrash | ForEach {[PSCustomObject]$_} | Format-Table -AutoSize
 $BoxUserTrash.Length
 #>
 
-<#
+
 #Test Export-BoxUserFolders
-Export-BoxUserFolders -BoxUserName $BoxUserName -BoxUserID $TestUserID -FilePath $OutputFolder
-#>
+#Export-BoxUserFolders -BoxUserName $BoxUserName -BoxUserID $TestUserID -FilePath $OutputFolder
+
 
 <#
 #Test Get-BoxUserFolders
