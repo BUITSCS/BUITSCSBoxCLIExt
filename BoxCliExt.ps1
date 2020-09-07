@@ -519,8 +519,8 @@ $NonOwnedTrashFolderID = ""
 
 $TestUserID = Get-BoxUserID -BoxUserName $BoxUserName
 
-#Test Create-BoxGroup and Add-UserListToBoxGroup
 <#
+#Test Create-BoxGroup and Add-UserListToBoxGroup
 for ($i=1; $i -le 30; $i++){
     if ($i -lt 10) {
         $num = "0" + $i.ToString()
@@ -530,14 +530,14 @@ for ($i=1; $i -le 30; $i++){
     }
     
     $BoxGroupName = $BoxGroupTestName + $num
-    #>
+    
     $BoxUserList = @($BoxUserName, $BoxUserName2, $BoxUserName3, $BoxUserName4)
 
     $BoxGroupCreateReturn = Create-BoxGroup -BoxGroupName $BoxGroupName
     $BoxGroupCreateReturn
     Add-UserListToBoxGroup -BoxUserList $BoxUserList -BoxGroupID $BoxGroupCreateReturn.id -BoxGroupRole admin
 #}
-
+<#
 <#
 #Test Deactivate-BoxUser and Activate-BoxUser
 if ($BoxUserName -ne "Brad_Hodges") {
@@ -577,8 +577,8 @@ $BoxUserTrash.Length
 
 
 #Test Export-BoxUserFolders
-#Export-BoxUserFolders -BoxUserName $BoxUserName -BoxUserID $TestUserID -FilePath $OutputFolder
 
+Export-BoxUserFolders -BoxUserName $BoxUserName -BoxUserID $TestUserID -FilePath $OutputFolder
 
 <#
 #Test Get-BoxUserFolders
