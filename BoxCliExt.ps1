@@ -498,7 +498,7 @@ Function Add-UserListToBoxGroup {
 #Dev values
 $DebugPreference = 'Continue'
 $EmailDomain = "" # @domain.com
-$OutputFolder = ""
+$OutputFolder = ".\"
 
 #Test values
 $BoxUserName = "" # A Box username
