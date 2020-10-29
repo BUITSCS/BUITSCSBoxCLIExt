@@ -1,7 +1,7 @@
 #Powershell module to extend functionality of the Box CLI interface for reporting and admin functions.
 #Brad Hodges 2020
 
-#Check for functional Box CLI
+#TODO: Check for functional Box CLI
 
 #Functions to do:
 #C
@@ -35,6 +35,16 @@
 #Set Box user storage caps from a list
 #Delete a Box user's trash items older than X days
 
+#Parameters
+param(
+    $BoxUserName, 
+    $EmailDomain="@baylor.edu",
+    $OutputFolder=".\",
+    [Parameter(Mandatory)]
+    [ValidateSet("Export-BoxUserFolders")]
+    $Function
+)
+
 #Get Box userID
 Function Get-BoxUserID {
     Param (
@@ -46,7 +56,7 @@ Function Get-BoxUserID {
     Return $BoxUserID
 }
 
-#Get list of items in a Box folder.  Pass in 0 for $BoxFolderID to get root folder of a user
+#(Deprecated) Get list of items in a Box folder.  Pass in 0 for $BoxFolderID to get root folder of a user
 Function Get-BoxFolderList {
     Param (
             [Parameter(Mandatory=$true,Position=0)]
@@ -497,11 +507,11 @@ Function Add-UserListToBoxGroup {
 
 #Dev values
 $DebugPreference = 'Continue'
-$EmailDomain = "" # @domain.com
-$OutputFolder = ".\"
+#$EmailDomain = "" # @domain.com
+#$OutputFolder = ".\"
 
 #Test values
-$BoxUserName = "" # A Box username
+#$BoxUserName = "" # A Box username
 $BoxUserName2 = ""
 $BoxUserName3 = ""
 $BoxUserName4 = ""
@@ -517,7 +527,10 @@ $NonOwnedTrashFileID = ""
 $OwnedTrashFolderID = ""
 $NonOwnedTrashFolderID = ""
 
-$TestUserID = Get-BoxUserID -BoxUserName $BoxUserName
+if ($Function -eq "Export-BoxUserFolders") {
+    $UserID = Get-BoxUserID -BoxUserName $BoxUserName
+    Export-BoxUserFolders -BoxUserName $BoxUserName -BoxUserID $UserID -FilePath $OutputFolder
+}
 
 <#
 #Test Create-BoxGroup and Add-UserListToBoxGroup
@@ -574,11 +587,6 @@ $BoxUserTrash = Get-BoxUserTrashList -BoxUserID $TestUserID -BoxUserName $BoxUse
 $BoxUserTrash | ForEach {[PSCustomObject]$_} | Format-Table -AutoSize
 $BoxUserTrash.Length
 #>
-
-
-#Test Export-BoxUserFolders
-
-Export-BoxUserFolders -BoxUserName $BoxUserName -BoxUserID $TestUserID -FilePath $OutputFolder
 
 <#
 #Test Get-BoxUserFolders
