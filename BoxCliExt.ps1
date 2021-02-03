@@ -39,7 +39,7 @@
 param(
     $BoxUserName, 
     $EmailDomain="@baylor.edu",
-    $OutputFolder=".\",
+    $OutputFolder="..\",
     [Parameter(Mandatory)]
     [ValidateSet("Export-BoxUserFolders", "Export-BoxUserTrashList")]
     $Function
