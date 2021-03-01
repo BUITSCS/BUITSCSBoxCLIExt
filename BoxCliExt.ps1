@@ -39,9 +39,9 @@
 param(
     $BoxUserName, 
     $EmailDomain="@baylor.edu",
-    $OutputFolder=".\",
+    $OutputFolder="..\",
     [Parameter(Mandatory)]
-    [ValidateSet("Export-BoxUserFolders")]
+    [ValidateSet("Export-BoxUserFolders", "Export-BoxUserTrashList")]
     $Function
 )
 
@@ -332,6 +332,24 @@ Function Get-BoxUserTrashListV2 {
     Return $TrashListOutput
 }
 
+Function Export-BoxUserTrashList {
+    Param (
+        [Parameter(Mandatory=$true,Position=0)]
+        [string]$BoxUserName,
+        [Parameter(Mandatory=$true,Position=1)]
+        [string]$BoxUserID,
+        [Parameter(Mandatory=$true,Position=2)]
+        [string]$FilePath)
+    Write-Debug "Export-BoxUserTrashList $BoxUserID $BoxUserName $FilePath"
+    $BoxUserTrashList = Get-BoxUserTrashList -BoxUserID $BoxUserID -BoxUserName $BoxUserName
+    $ReportRun = "Export-BoxUserTrashList"
+    $FileTimestamp = (Get-Date).ToString("yyyyMMdd_HHmmss")
+    $OutputFile = "$FolderPath$BoxUserName-$ReportRun-$FileTimeStamp.csv"
+    $BoxUserTrashList = Get-BoxUserTrashList $BoxUserName -BoxUserID $BoxUserID
+    $BoxUserTrashList | Export-Csv -Path $OutputFile
+    Return $BoxUserTrashList
+}
+
 #Empty trash for a Box user.  Only deletes items that were owned by the user.
 Function Empty-BoxUserTrash {
         Param (
@@ -530,6 +548,11 @@ $NonOwnedTrashFolderID = ""
 if ($Function -eq "Export-BoxUserFolders") {
     $UserID = Get-BoxUserID -BoxUserName $BoxUserName
     Export-BoxUserFolders -BoxUserName $BoxUserName -BoxUserID $UserID -FilePath $OutputFolder
+}
+
+if ($Function -eq "Export-BoxUserTrashList") {
+    $UserID = Get-BoxUserID -BoxUserName $BoxUserName
+    Export-BoxUserTrashList -BoxUserName $BoxUserName -BoxUserID $UserID -FilePath $OutputFolder
 }
 
 <#
