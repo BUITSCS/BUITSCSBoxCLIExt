@@ -39,11 +39,65 @@
 param(
     $BoxUserName, 
     $EmailDomain="@baylor.edu",
-    $OutputFolder="..\",
+    $OutputFolder="$PSScriptRoot",
     [Parameter(Mandatory)]
-    [ValidateSet("Export-BoxUserFolders", "Export-BoxUserTrashList")]
-    $Function
+    [ValidateSet("Export-BoxUserFolders", "Export-BoxUserTrashList", "Export-AllBoxUsers", "Get-BoxUsersFromCSV", "Get-BoxUsersFromAPI", "Delete-BoxUsersFromCSV", "Delete-BoxUsersFromAPI")]
+    $Function,
+    $UserCSVPath = "$PSScriptRoot\Users.csv", #Make this conditionally required if "FromCSV" function is selected
+    $APIExpiredAccountAge = 180
 )
+
+function Delete-BoxUsersFromCSV {
+    param (
+        $FilePath
+    )
+
+    #Read in list of users from CSV
+
+    #Go through list of users
+    foreach ($BoxUser in $BoxUsers) {
+        #Check if user is deactivated
+
+        #Check last date of edit
+
+        #Delete user's files
+
+        #Delete user
+    }
+}
+
+function Get-BoxUsersFromCSV {
+    param (
+        $FilePath
+    )
+    #Get list of users
+
+    
+}
+
+function Delete-BoxUsersFromAPI {
+    param (
+        $ExpiredAccountAge
+    )
+    #Go through list of users
+    foreach ($BoxUser in $BoxUsers) {
+        #Check if user is deactivated
+
+        #Check last date of edit
+
+        #Delete user's files
+
+        #Delete user
+    }
+}
+
+function Get-BoxUsersFromAPI {
+    param (
+        $ExpiredAccountAge
+    )
+    #Get list of users
+
+}
 
 #Get Box userID
 Function Get-BoxUserID {
@@ -522,6 +576,17 @@ Function Add-UserListToBoxGroup {
         }
     }
 }
+Function Export-AllBoxUsers {
+    Param (
+        [Parameter(Mandatory=$true,Position=0)]
+        [string]$FilePath)
+    Write-Debug "Running Export-AllBoxUsers"
+    $ReportRun = "Export-AllBoxUsers"
+    $FileTimestamp = (Get-Date).ToString("yyyyMMdd_HHmmss")
+    $OutputFile = "$ReportRun.csv#-$FileTimeStamp.csv"
+    box users --json | ConvertFrom-Json | Export-Csv -Path $OutputFile
+    Write-Debug $UserDeactivationReturn
+}
 
 #Dev values
 $DebugPreference = 'Continue'
@@ -553,6 +618,26 @@ if ($Function -eq "Export-BoxUserFolders") {
 if ($Function -eq "Export-BoxUserTrashList") {
     $UserID = Get-BoxUserID -BoxUserName $BoxUserName
     Export-BoxUserTrashList -BoxUserName $BoxUserName -BoxUserID $UserID -FilePath $OutputFolder
+}
+
+if ($Function -eq "Export-AllBoxUsers") {
+    Export-AllBoxUsers -FilePath $OutputFolder
+}
+#"Export-BoxUserFolders", "Export-BoxUserTrashList", "Export-AllBoxUsers", "Get-BoxUsersFromCSV", "Get-BoxUsersFromAPI", "Delete-BoxUsersFromCSV", "Delete-BoxUsersFromAPI"
+if ($Function -eq "Get-BoxUsersFromCSV") {
+    Get-BoxUsersFromCSV -FilePath $UserCSVPath
+}
+
+if ($Function -eq "Get-DeactivatedBoxUsersFromAPI") {
+    Get-BoxUsersFromAPI -ExpiredAccountAge $APIExpiredAccountAge
+}
+
+if ($Function -eq "Delete-BoxUsersFromCSV") {
+    Delete-BoxUsersFromCSV -FilePath $UserCSVPath
+}
+
+if ($Function -eq "Delete-BoxUsersFromAPI") {
+    Delete-BoxUsersFromAPI -ExpiredAccountAge $APIExpiredAccountAge
 }
 
 <#
